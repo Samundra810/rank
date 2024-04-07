@@ -1,12 +1,7 @@
-import express from 'express';
 import puppeteer from 'puppeteer-extra';
 import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 import cheerio from 'cheerio';
 import fs from 'fs';
-import path from 'path'; // Import the path module
-
-const app = express();
-const port = 3000;
 
 // Custom function to compute the uule parameter based on location name
 function getUule(locationName) {
@@ -21,7 +16,7 @@ async function fetchSearchResults(query, maxResults = 100, locationName) {
     await page.setViewport({ width: 1280, height: 800 });
 
     try {
-        const uule = getUule(locationName);
+        const uule = getUule(locationName); // Use the defined getUule function
         const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&uule=${uule}`;
 
         console.log('Google Search URL:', googleUrl);
@@ -74,35 +69,19 @@ async function saveResultsToFile(results, filePath) {
     }
 }
 
-// Serve the HTML form
-app.get('/', (req, res) => {
-    const indexPath = path.join('C:/Users/Samundra/Desktop/test/rank-final/index.html');
-    res.sendFile(indexPath);
-});
-
-// Handle form submission
-app.get('/search', async (req, res) => {
-    const { query, locationName } = req.query;
-
-    if (!query || !locationName) {
-        return res.status(400).send('Please provide both query and locationName parameters.');
-    }
-
+async function main() {
+    const query = 'stock market training';
     const outputFile = './results.json';
     const maxResults = 100;
+    const locationName = 'India';
 
     try {
         puppeteer.use(stealthPlugin());
         const results = await fetchSearchResults(query, maxResults, locationName);
         await saveResultsToFile(results, outputFile);
-        res.send('Search completed. Results saved to results.json');
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).send('An error occurred during the search.');
     }
-});
+}
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+main();
